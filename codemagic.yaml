@@ -1,0 +1,33 @@
+workflows:
+  ios-workflow:
+    name: iOS Workflow
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: app_store
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.sammarks.cocofocuscore
+      vars:
+        BUNDLE_ID: com.sammarks.cocofocuscore
+        XCODE_PROJECT: "FocusCore.xcodeproj"
+        XCODE_SCHEME: "FocusCore"
+        APP_STORE_APPLE_ID: 6760190470
+      xcode: latest
+    scripts:
+      - name: Set up provisioning profiles settings on Xcode project
+        script: xcode-project use-profiles
+      - name: Build ipa for distribution
+        script: |
+          xcode-project build-ipa \
+          --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
+          --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      app_store_connect:
+        auth: integration
